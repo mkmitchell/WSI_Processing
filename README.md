@@ -19,3 +19,6 @@ To calculate the WSI
 3/ determine the snow depth in inches, if there is 5 inches of snow on the ground your value would be 5
 4/ determine the number of consecutive day when there was measurable snow on the ground, if the 5 inches of snow had been on the ground for 3 days, your value would be 3
 5/ add the numbers from 1 through 4 above, this is your WSI value. When the WSI value is 7.2 or greater there is increased likelihood of decreasing mallard abundance between two days at your location.
+
+
+Please visit http://gisweb.ducks.org/wsi/ for more information and to access the application
