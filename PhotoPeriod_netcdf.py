@@ -2,7 +2,8 @@ import numpy as np
 from numpy import *
 import netCDF4, os, re, datetime, multiprocessing, time, timeit
 from multiprocessing import Lock
-from astral import *
+from astral import LocationInfo
+from astral.sun import sun
 from sympy import *
 from datetime import date
 
@@ -15,14 +16,8 @@ def getDate(day, year):
 
 
 def doCalc(year):            
-        path = 'R:\\Personal\\Mitchell\\Projects\\LCC_WSI\\wsi\\'#'D:\\GIS\\projects\\LCC_WSI_Climate\\python code\\wsi\\'
+        path = '\\\\10.0.0.2\\work\\gis\\projects\\WSI\\data\\'#'D:\\GIS\\projects\\LCC_WSI_Climate\\python code\\wsi\\'
         os.chdir(path)
-
-        #Sets yearlist = every year between 1979 and 2013
-
-        ############## TESTING
-        #yearlist = list(range(1980, 1981))
-        ############## TESTING
 
         #Variables within netCDF that are needed for calculations
         air = 'air.2m.'
@@ -31,8 +26,7 @@ def doCalc(year):
         #/Variables 
 
         #Setting up code variables
-        goodmonth = (1,3,9,10,11,12)
-
+        goodmonth = (1,2,3,9,10,11,12)
         #Loop that processes every year within yearlist
 
         yearstr = str(year)
@@ -59,34 +53,27 @@ def doCalc(year):
 
                 if month not in goodmonth:
                         continue
+                if yearstr == '2019' and month not in (1,2,3,4):
+                        continue
 
                 print
                 print('Processing '  + str(month) + '/' + str(day) + '/' + yearstr)                            
                 #Process only the area of interest
                 for b in range(50, 180): #ny 50, 180
                         for c in range(150, 280): #nx 150, 280
-
-                                latval = latintemp[b,c]
-                                lonval = lonintemp[b,c]
-
                                 #need photo period
                                 d = date(year, month, day)
-                                a = Astral()
-                                location = a['Atlanta']
-                                location.latitude = latval
-                                location.longitude = lonval
-                                sunrise = location.sunrise(d)
-                                sunset = location.sunset(d)
-                                photo = sunset - sunrise
+                                city = LocationInfo('Atlanta')
+                                s = sun(city.observer, date=d)   
+                                photo = s['sunset'] - s['sunrise']
                                 photosec = photo.total_seconds()
                                 photomin = photosec / 60
                                 photo_val[i,b,c] = photomin
                                  
                                         
-                                
         # create NetCDF file
         print('Creating variables for ', yearstr)
-        model_val_year = ('G:\\WSI data verification\\dataverification\\Photo_period_' + yearstr + '.nc')
+        model_val_year = ('\\\\10.0.0.2\\work\\gis\\projects\\WSI\\data\\Photo_period_' + yearstr + '.nc')
         nco = netCDF4.Dataset(model_val_year,'w',clobber=True)
         nco.createDimension('time', None)
         nco.createDimension('x',nx)
@@ -138,8 +125,8 @@ if __name__ == '__main__':
         startfirst = timeit.default_timer()
         
         #Call doCalc
-        yearlist = list(range(1979, 2014))
-        pool = multiprocessing.Pool(8)
+        yearlist = list(range(1979, 2022))
+        pool = multiprocessing.Pool(4)
         e = pool.map(doCalc, yearlist)
         pool.close()
         #print("Joining pool")
